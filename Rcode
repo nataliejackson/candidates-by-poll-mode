@@ -1,0 +1,45 @@
+#Modified from Jonathan Robinson's original code: http://jonrobinson2.github.io/Public-Polling-May-Be-Understating-Trumps-Support/
+require(pollstR)
+require(ggplot2)
+require(magrittr)
+
+remove(list=ls())
+
+tmp=pollstr_polls(max_pages = 10000, chart = '2016-national-gop-primary', after = "2015-3-1")
+tmp$questions=tmp$questions[tmp$questions$topic=='2016-president-gop-primary',]
+
+tmp1=merge(tmp$polls, tmp$questions, by='id')
+
+tmp1$interviewer="Internet/Automated Phone"
+tmp1$interviewer[tmp1$method %in% c('Live Phone','IVR/Live Phone')]="Traditional Phone"
+
+plt=tmp1[tmp1$choice %in% c("Trump") ,] %>% 
+  ggplot(aes(start_date,value)) + 
+  geom_point(aes(size=observations, colour=interviewer)) +
+  geom_smooth(aes(weight=observations, colour=interviewer), size=2, alpha=.05, fill="navy") +
+  scale_size(guide=FALSE) +
+  scale_colour_brewer("Methodology",palette = "Accent") +
+  theme(panel.background =  element_rect(fill = NA, colour = "black", size = 0.25),
+        panel.border =      element_blank(),
+        panel.grid.major =  element_line(colour = "black", size = 0.05),
+        panel.grid.minor =  element_line(colour = "black", size = 0.05),
+        plot.title=element_text(size=18, family="Helvetica Neue Light"),
+        axis.title.x=element_text(size=14, family="Helvetica Neue Light"),
+        axis.text.x=element_text(colour="black", size=14, family="Helvetica Neue Light"),
+        axis.title.y=element_text(size=14, family="Helvetica Neue Light"),
+        axis.text.y=element_text(colour="black",size=14, family="Helvetica Neue Light"),
+        strip.text.x = element_text(size = 14,family="Helvetica Neue Light"),
+        strip.text.y = element_text(size = 14,family="Helvetica Neue Light"),
+        #legend.position = "none",
+        legend.title = element_text(size=14, family="Helvetica",face="bold"),
+        legend.text = element_text(size=14, family="Helvetica Neue Light"),
+        strip.background = element_rect(colour = "navy", fill = "navy")) +
+  xlab("Date") + ylab("%") + ggtitle("Trump Vote by Poll Type")
+
+png(filename="national-Trump.png", height=700, width=570, bg="white")
+print(plt)
+dev.off()
+
+#change candidate name in lines 16/37/39 to get other candidates
+#change chart to '2016-national-democratic-primary' in line 8 for Democrats
+#change topic to '2016-president-dem-primary' in line 9 for Democrats
